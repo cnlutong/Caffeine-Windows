@@ -1,0 +1,6 @@
+**/bin/
+**/obj/
+publish/
+app/
+*.zip
+SHA256.txt
