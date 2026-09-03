@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Drawing.Drawing2D;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace Caffeine.Windows;
@@ -32,7 +33,7 @@ internal static class Program
         using var mutex = new Mutex(true, @"Local\Caffeine.Windows.43E867D2", out var firstInstance);
         if (!firstInstance)
         {
-            MessageBox.Show("Caffeine 已在运行，请查看任务栏通知区域。", "Caffeine",
+            MessageBox.Show(UiText.AlreadyRunning, "Caffeine",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             return 0;
         }
@@ -49,6 +50,10 @@ internal static class Program
                 (ExecutionState.Continuous | ExecutionState.SystemRequired) ||
             PowerRequest.FlagsFor(AwakeMode.Display) !=
                 (ExecutionState.Continuous | ExecutionState.SystemRequired | ExecutionState.DisplayRequired))
+            return 1;
+
+        if (!UiText.UsesChinese(CultureInfo.GetCultureInfo("zh-CN")) ||
+            UiText.UsesChinese(CultureInfo.GetCultureInfo("en-US")))
             return 1;
 
         try
@@ -68,9 +73,9 @@ internal static class Program
 internal sealed class TrayApplicationContext : ApplicationContext
 {
     private readonly ContextMenuStrip _menu = new() { ShowImageMargin = false };
-    private readonly ToolStripMenuItem _offItem = new("关闭");
-    private readonly ToolStripMenuItem _systemItem = new("仅防止电脑休眠");
-    private readonly ToolStripMenuItem _displayItem = new("防止休眠并保持屏幕开启");
+    private readonly ToolStripMenuItem _offItem = new(UiText.Off);
+    private readonly ToolStripMenuItem _systemItem = new(UiText.PreventSleep);
+    private readonly ToolStripMenuItem _displayItem = new(UiText.KeepDisplayOn);
     private readonly NotifyIcon _tray;
     private Icon _icon;
     private AwakeMode _mode = AwakeMode.Off;
@@ -82,7 +87,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _systemItem.Click += (_, _) => SetMode(AwakeMode.System);
         _displayItem.Click += (_, _) => SetMode(AwakeMode.Display);
 
-        var exitItem = new ToolStripMenuItem("退出");
+        var exitItem = new ToolStripMenuItem(UiText.Exit);
         exitItem.Click += (_, _) => ExitThread();
         _menu.Items.AddRange([
             _offItem,
@@ -97,7 +102,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         {
             ContextMenuStrip = _menu,
             Icon = _icon,
-            Text = "Caffeine：已关闭",
+            Text = UiText.TrayOff,
             Visible = true
         };
         _tray.MouseClick += (_, eventArgs) =>
@@ -120,7 +125,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         }
         catch (Exception exception)
         {
-            MessageBox.Show($"无法更改电源状态。\n\n{exception.Message}", "Caffeine",
+            MessageBox.Show($"{UiText.ChangePowerFailed}\n\n{exception.Message}", "Caffeine",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
@@ -140,9 +145,9 @@ internal sealed class TrayApplicationContext : ApplicationContext
 
         _tray.Text = _mode switch
         {
-            AwakeMode.System => "Caffeine：正在防止电脑休眠",
-            AwakeMode.Display => "Caffeine：正在防止休眠并保持屏幕开启",
-            _ => "Caffeine：已关闭"
+            AwakeMode.System => UiText.TrayPreventSleep,
+            AwakeMode.Display => UiText.TrayKeepDisplayOn,
+            _ => UiText.TrayOff
         };
 
         var oldIcon = _icon;
@@ -233,6 +238,33 @@ internal sealed class TrayApplicationContext : ApplicationContext
     }
 }
 
+internal static class UiText
+{
+    // ponytail: inline strings cover two languages; move to .resx when adding a third.
+    private static bool Chinese => UsesChinese(CultureInfo.CurrentUICulture);
+
+    internal static string AlreadyRunning => Chinese
+        ? "Caffeine 已在运行，请查看任务栏通知区域。"
+        : "Caffeine is already running. Check the notification area.";
+    internal static string Off => Chinese ? "关闭" : "Off";
+    internal static string PreventSleep => Chinese ? "仅防止电脑休眠" : "Prevent sleep";
+    internal static string KeepDisplayOn => Chinese ? "防止休眠并保持屏幕开启" : "Prevent sleep and keep display on";
+    internal static string Exit => Chinese ? "退出" : "Exit";
+    internal static string TrayOff => Chinese ? "Caffeine：已关闭" : "Caffeine: off";
+    internal static string TrayPreventSleep => Chinese
+        ? "Caffeine：正在防止电脑休眠"
+        : "Caffeine: preventing sleep";
+    internal static string TrayKeepDisplayOn => Chinese
+        ? "Caffeine：正在防止休眠并保持屏幕开启"
+        : "Caffeine: preventing sleep and keeping display on";
+    internal static string ChangePowerFailed => Chinese ? "无法更改电源状态。" : "Unable to change the power state.";
+    internal static string NativeCallFailed => Chinese
+        ? "SetThreadExecutionState 调用失败。"
+        : "SetThreadExecutionState failed.";
+
+    internal static bool UsesChinese(CultureInfo culture) => culture.TwoLetterISOLanguageName == "zh";
+}
+
 internal static class PowerRequest
 {
     internal static ExecutionState FlagsFor(AwakeMode mode) => mode switch
@@ -250,7 +282,7 @@ internal static class PowerRequest
 
         var error = Marshal.GetLastWin32Error();
         throw error == 0
-            ? new InvalidOperationException("SetThreadExecutionState 调用失败。")
+            ? new InvalidOperationException(UiText.NativeCallFailed)
             : new Win32Exception(error);
     }
 
