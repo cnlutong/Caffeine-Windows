@@ -16,36 +16,46 @@ const cli = join(root, "node_modules/@tauri-apps/cli/tauri.js");
 const icons = join(root, "src-tauri/icons");
 const stage = mkdtempSync(join(tmpdir(), "caffeine-icons-"));
 try {
-  execFileSync(
-    process.execPath,
-    [cli, "icon", join(icons, "app.svg"), "--output", stage],
-    { stdio: "pipe", cwd: root },
-  );
-  for (const file of [
-    "32x32.png",
-    "128x128.png",
-    "128x128@2x.png",
-    "icon.ico",
-    "icon.icns",
-  ]) {
-    copyFileSync(join(stage, file), join(icons, file));
+  if (!process.argv.includes("--tray-only")) {
+    execFileSync(
+      process.execPath,
+      [cli, "icon", join(icons, "app.svg"), "--output", stage],
+      { stdio: "pipe", cwd: root },
+    );
+    for (const file of [
+      "32x32.png",
+      "128x128.png",
+      "128x128@2x.png",
+      "icon.ico",
+      "icon.icns",
+    ]) {
+      copyFileSync(join(stage, file), join(icons, file));
+    }
   }
+  const source = readFileSync(join(icons, "tray.svg"), "utf8");
   for (const mac of [false, true]) {
     for (const mode of ["off", "system", "display"]) {
       const color = mac
         ? "#000000"
-        : { off: "#748071", system: "#d78c27", display: "#218963" }[mode];
-      const active = mode !== "off";
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><g stroke="${color}" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round"><path fill="${active ? color : "none"}" d="M10 24h35l-2 19c-1 9-8 14-16 14S12 52 12 43Z"/><path d="M45 28h4c13 0 13 18-5 18M11 62h33"/>${active ? '<path d="M21 17c-5-6 6-10 1-16M34 17c-5-6 6-10 1-16"/>' : ""}${mode === "display" ? '<circle cx="54" cy="12" r="6"/>' : ""}</g></svg>`;
+        : { off: "#77828e", system: "#a26813", display: "#2c8c69" }[mode];
+      let svg = source.replaceAll("currentColor", color);
+      if (mode !== "system")
+        svg = svg.replace(/<g id="steam">[\s\S]*?<\/g>/, "");
+      if (mode !== "off")
+        svg = svg.replace('<path id="cup"', `<path id="cup" fill="${color}"`);
+      if (mode !== "display")
+        svg = svg.replace(/<g id="display">[\s\S]*?<\/g>/, "");
+      // macOS renders tray images at 18 points; use an exact 2x raster.
+      const size = mac ? "36" : "32";
       const input = join(stage, "tray.svg");
       writeFileSync(input, svg);
       execFileSync(
         process.execPath,
-        [cli, "icon", input, "--output", join(stage, "tray"), "--png", "44"],
+        [cli, "icon", input, "--output", join(stage, "tray"), "--png", size],
         { stdio: "pipe", cwd: root },
       );
       copyFileSync(
-        join(stage, "tray/44x44.png"),
+        join(stage, `tray/${size}x${size}.png`),
         join(icons, `tray-${mac ? "mac-" : ""}${mode}.png`),
       );
     }

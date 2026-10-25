@@ -47,7 +47,7 @@ impl PowerBackend for PowerRequest {
         let mut reason: Vec<u16> = "Caffeine: user enabled wake prevention\0"
             .encode_utf16()
             .collect();
-        let mut context = REASON_CONTEXT {
+        let context = REASON_CONTEXT {
             Version: POWER_REQUEST_CONTEXT_VERSION,
             Flags: POWER_REQUEST_CONTEXT_SIMPLE_STRING,
             Reason: REASON_CONTEXT_0 {
@@ -55,7 +55,7 @@ impl PowerBackend for PowerRequest {
             },
         };
         // PowerCreateRequest copies the context; the UTF-16 string lives through the call.
-        let handle = unsafe { PowerCreateRequest(&mut context) };
+        let handle = unsafe { PowerCreateRequest(&context) };
         if handle == INVALID_HANDLE_VALUE {
             return Err(format!("PowerCreateRequest: {}", unsafe { GetLastError() }));
         }

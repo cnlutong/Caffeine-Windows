@@ -12,7 +12,7 @@ Version 2 targets **Windows x86_64** and **macOS ARM64 (Apple Silicon)** only. A
 - **Allow sleep** follows your usual power settings.
 - **Keep system awake** prevents idle system sleep while allowing display sleep.
 - **Keep screen on** prevents idle system and display sleep.
-- On Windows, left-click toggles Off / the last active mode and right-click opens the menu. On macOS, click opens the menu.
+- On both Windows and macOS, left-click toggles Off / the last active mode and right-click opens the menu.
 - Closing the panel keeps Caffeine running. Choose **Quit** in the panel or tray to exit. Launching again opens the existing instance's panel.
 - Language follows the system, with English and Chinese overrides. Language and last active mode are saved; each fresh process starts Off.
 

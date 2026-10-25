@@ -16,10 +16,37 @@
       await invoke('smoke_checkpoint');
       await invoke('set_mode', { mode: 'off' });
       await invoke('smoke_checkpoint');
-      await invoke('smoke_complete', { passed: true, detail: 'Real React/WebView IPC, native modes checked with pmset, invalid input, localization, compact layout, window destruction/recreation with active power state, and request cleanup' });
+      await invoke('smoke_complete', { passed: true, detail: 'Real React/WebView IPC, left/right tray events, last-mode restoration, native modes checked with pmset, invalid input, localization, compact layout, window destruction/recreation with active power state, and request cleanup' });
       return;
     }
     if (initial.mode !== 'off') throw new Error('Fresh process must start off');
+    // Send complete press/release pairs through the same handler as native tray events.
+    const trayClick = (button, phase) => invoke('smoke_tray_click', { button, phase });
+    await invoke('set_mode', { mode: 'system' });
+    await invoke('set_mode', { mode: 'off' });
+    await trayClick('left', 'down');
+    if ((await invoke('get_state')).mode !== 'off') throw new Error('Mouse down toggled too early');
+    await trayClick('left', 'up');
+    if ((await invoke('get_state')).mode !== 'system') throw new Error('Left click did not enable the last mode');
+    let beforeRight = await invoke('get_state');
+    await trayClick('right', 'down');
+    await trayClick('right', 'up');
+    if ((await invoke('get_state')).revision !== beforeRight.revision) throw new Error('Right click changed the power state');
+    await trayClick('left', 'down');
+    await trayClick('left', 'up');
+    if ((await invoke('get_state')).mode !== 'off') throw new Error('Left click did not disable wake prevention');
+    beforeRight = await invoke('get_state');
+    await trayClick('right', 'down');
+    await trayClick('right', 'up');
+    if ((await invoke('get_state')).revision !== beforeRight.revision) throw new Error('Right click enabled wake prevention');
+    await invoke('set_mode', { mode: 'display' });
+    for (const expected of ['off', 'display']) {
+      await trayClick('left', 'down');
+      await trayClick('left', 'up');
+      if ((await invoke('get_state')).mode !== expected) throw new Error('Tray toggle did not restore display mode');
+      await invoke('smoke_checkpoint');
+    }
+    await invoke('set_mode', { mode: 'off' });
     await invoke('set_language', { language: 'zh' });
     await wait(() => document.documentElement.lang === 'zh-CN', 'Chinese UI');
     for (const mode of ['system', 'display', 'system', 'off']) {

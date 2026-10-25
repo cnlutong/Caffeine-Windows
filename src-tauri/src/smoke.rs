@@ -5,6 +5,37 @@ use tauri::{AppHandle, Manager};
 static REOPENING: AtomicBool = AtomicBool::new(false);
 
 #[tauri::command]
+pub fn smoke_tray_click(app: AppHandle, button: String, phase: String) -> Result<(), String> {
+    use tauri::tray::{MouseButton, MouseButtonState, TrayIconEvent};
+    if !enabled() {
+        return Err("Desktop smoke harness is not enabled".into());
+    }
+    let button = match button.as_str() {
+        "left" => MouseButton::Left,
+        "right" => MouseButton::Right,
+        _ => return Err("Unknown test button".into()),
+    };
+    let button_state = match phase.as_str() {
+        "down" => MouseButtonState::Down,
+        "up" => MouseButtonState::Up,
+        _ => return Err("Unknown test phase".into()),
+    };
+    let tray = app.tray_by_id("main").ok_or("Missing tray")?;
+    let rect = tray
+        .rect()
+        .map_err(|error| error.to_string())?
+        .ok_or("Missing tray bounds")?;
+    let event = TrayIconEvent::Click {
+        id: tray.id().clone(),
+        position: tauri::PhysicalPosition::new(0.0, 0.0),
+        rect,
+        button,
+        button_state,
+    };
+    super::handle_tray_event(&tray, event)
+}
+
+#[tauri::command]
 pub fn smoke_reopening() -> bool {
     REOPENING.load(Ordering::SeqCst)
 }

@@ -95,7 +95,6 @@ impl<P: PowerBackend> Controller<P> {
         Ok(())
     }
 
-    #[cfg(any(target_os = "windows", test))]
     pub fn toggle(&mut self) -> Result<(), String> {
         self.set_mode(if self.mode == Mode::Off {
             self.settings.last_active_mode

@@ -183,7 +183,10 @@ fn publish(app: &AppHandle, snapshot: &Snapshot) {
     if let Err(error) = app.run_on_main_thread(move || {
         if let Some(tray) = main.tray_by_id("main") {
             let result = (|| -> tauri::Result<()> {
-                tray.set_icon(Some(tray_image(snapshot.mode)))?;
+                tray.set_icon_with_as_template(
+                    Some(tray_image(snapshot.mode)),
+                    cfg!(target_os = "macos"),
+                )?;
                 tray.set_tooltip(Some(tooltip(&snapshot)))?;
                 tray.set_menu(Some(menu(&main, &snapshot)?))?;
                 Ok(())
@@ -236,6 +239,21 @@ fn show_settings(app: &AppHandle) {
     }
 }
 
+fn handle_tray_event(
+    tray: &tauri::tray::TrayIcon,
+    event: tauri::tray::TrayIconEvent,
+) -> Result<(), String> {
+    if let tauri::tray::TrayIconEvent::Click {
+        button: tauri::tray::MouseButton::Left,
+        button_state: tauri::tray::MouseButtonState::Up,
+        ..
+    } = event
+    {
+        change(tray.app_handle(), |controller| controller.toggle())?;
+    }
+    Ok(())
+}
+
 pub fn self_test() -> Result<(), String> {
     let mut controller = Controller::new(PowerRequest::default(), Settings::default());
     for mode in [Mode::System, Mode::Display, Mode::System, Mode::Off] {
@@ -270,6 +288,7 @@ pub fn run() {
         smoke::smoke_complete,
         smoke::smoke_reopening,
         smoke::smoke_reopen,
+        smoke::smoke_tray_click,
         smoke::smoke_checkpoint
     ]);
     let app = builder
@@ -303,7 +322,8 @@ pub fn run() {
                 .icon_as_template(cfg!(target_os = "macos"))
                 .tooltip(tooltip(&snapshot))
                 .menu(&tray_menu)
-                .show_menu_on_left_click(!cfg!(target_os = "windows"))
+                // Right-click keeps the native context menu; left-click toggles once on release.
+                .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| {
                     let result = match event.id.as_ref() {
                         "off" => change(app, |c| c.set_mode(Mode::Off)).map(|_| ()),
@@ -322,20 +342,10 @@ pub fn run() {
                     }
                 })
                 .on_tray_icon_event(|tray, event| {
-                    #[cfg(target_os = "windows")]
-                    if let tauri::tray::TrayIconEvent::Click {
-                        button: tauri::tray::MouseButton::Left,
-                        button_state: tauri::tray::MouseButtonState::Up,
-                        ..
-                    } = event
-                    {
-                        if let Err(error) = change(tray.app_handle(), |c| c.toggle()) {
-                            eprintln!("{error}");
-                            show_settings(tray.app_handle());
-                        }
+                    if let Err(error) = handle_tray_event(tray, event) {
+                        eprintln!("{error}");
+                        show_settings(tray.app_handle());
                     }
-                    #[cfg(not(target_os = "windows"))]
-                    let _ = (tray, event);
                 })
                 .build(app)?;
             if std::env::args().any(|arg| arg == "--settings") {
