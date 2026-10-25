@@ -2,16 +2,70 @@
 
 [English](README.md) | 简体中文
 
-基于 **Tauri 2 + React + TypeScript + Rust** 的轻量防休眠工具。
+适用于 **Windows 和 macOS** 的轻量防休眠工具，基于 **Tauri 2 + React + TypeScript + Rust**。
 
-2.0 仅面向 **Windows x86_64** 和 **macOS ARM64（Apple Silicon）**。界面为紧凑面板，电源状态由 Rust 管理；无需联网服务。
+## 下载 2.0
 
-## 2.0 使用
+| 平台           | 系统要求                                   | v2.0.0 下载                                                                                                                             |
+| -------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Windows x86_64 | 64 位 Windows 10 / 11，Intel 或 AMD 处理器 | [Windows 安装包（.exe）](https://github.com/cnlutong/Caffeine-Windows/releases/download/v2.0.0/Caffeine_2.0.0_windows_x86_64_setup.exe) |
+| macOS ARM64    | macOS 11 或更新版本，Apple Silicon 芯片    | [Mac 安装镜像（.dmg）](https://github.com/cnlutong/Caffeine-Windows/releases/download/v2.0.0/Caffeine_2.0.0_macos_arm64.dmg)            |
 
-- 启动后显示托盘 / 菜单栏图标；菜单中选择「设置」打开面板。
-- **允许休眠**：遵循系统原有电源策略。
-- **仅防休眠**：阻止电脑因空闲自动休眠，允许屏幕关闭。
-- **屏幕常亮**：同时阻止电脑与屏幕因空闲自动休眠。
+[版本说明](https://github.com/cnlutong/Caffeine-Windows/releases/tag/v2.0.0) · [SHA-256 校验和](https://github.com/cnlutong/Caffeine-Windows/releases/download/v2.0.0/SHA256SUMS.txt) · [全部版本](https://github.com/cnlutong/Caffeine-Windows/releases)
+
+2.0 仅提供上述两种架构，暂不提供 Windows ARM64、32 位 Windows 或 Intel Mac 安装包。
+
+## 2.0 新功能
+
+- **支持 Windows 和 Mac**：共用 React 紧凑设置面板，由 Rust 调用系统原生电源接口，无需联网服务。
+- **三种咖啡杯状态图标**：关闭时为空心杯，仅防休眠为实心杯加蒸汽，屏幕常亮为实心杯加太阳；Mac 菜单栏图标适配浅色和深色外观。
+- **统一的左右键操作**：两端均为左键开启或关闭，并恢复上次启用的模式；右键呼出菜单。
+- **中英文界面与偏好记忆**：保存语言和上次模式，支持单实例运行；关闭设置面板后继续运行，退出时释放电源请求。
+
+## 安装说明
+
+### Windows x86_64
+
+1. 从上表下载并运行 `Caffeine_2.0.0_windows_x86_64_setup.exe`。
+2. 按向导完成当前用户安装。界面依赖 **Microsoft Edge WebView2**；如果系统尚未安装，安装包会下载运行时引导程序，此步骤需要联网。
+3. 从开始菜单启动 **Caffeine**，在任务栏通知区域找到咖啡杯图标，必要时展开隐藏图标；右键选择「设置…」打开面板。
+
+从 1.x 升级时，请先退出旧版托盘程序，再启动 2.0。
+
+v2.0.0 Windows 安装包**未签名**，系统可能提示发布者未知或信誉不足。[Smart App Control（智能应用控制）](https://support.microsoft.com/en-us/windows/security/threat-malware-protection/smart-app-control-frequently-asked-questions)可能拦截它，且不支持为单个应用添加放行例外。
+
+### macOS ARM64 / Apple Silicon
+
+1. 下载并打开 `Caffeine_2.0.0_macos_arm64.dmg`。
+2. 将 **Caffeine.app** 拖入「**应用程序**」，然后推出安装镜像。
+3. 从「应用程序」打开 **Caffeine**。启动后咖啡杯出现在菜单栏，不显示 Dock 图标，也不会自动打开设置窗口；右键单击咖啡杯，选择「设置…」打开面板。
+
+v2.0.0 Mac 应用仅有 **ad-hoc 签名，尚未经过 Apple 公证**。如果系统因无法验证开发者而阻止打开，请先确认下载来源与校验和。若决定继续打开，先尝试启动一次，再到「**系统设置 → 隐私与安全性 → 仍要打开**」中确认；macOS 11 / 12 的对应入口是「**系统偏好设置 → 安全性与隐私 → 通用**」。详见 [Apple 官方打开说明](https://support.apple.com/zh-cn/102445)。
+
+### 校验下载文件
+
+同时下载 `SHA256SUMS.txt`，将其中对应文件名的校验和与下方命令输出对比；不一致时请勿安装。
+
+Windows PowerShell：
+
+```powershell
+Get-FileHash .\Caffeine_2.0.0_windows_x86_64_setup.exe -Algorithm SHA256
+```
+
+macOS 终端：
+
+```sh
+shasum -a 256 Caffeine_2.0.0_macos_arm64.dmg
+```
+
+## 使用方式
+
+| 模式     | 行为                                 | 托盘图标      |
+| -------- | ------------------------------------ | ------------- |
+| 允许休眠 | 遵循系统原有电源策略                 | 空心杯        |
+| 仅防休眠 | 阻止电脑因空闲自动休眠，允许屏幕关闭 | 实心杯 + 蒸汽 |
+| 屏幕常亮 | 同时阻止电脑与屏幕因空闲自动休眠     | 实心杯 + 太阳 |
+
 - Windows 和 Mac 均为左键单击托盘图标，在关闭与上次启用的模式间切换；右键打开菜单。
 - 关闭面板后继续运行；从面板或托盘选择「退出」才结束程序。再次启动会打开已有实例的面板。
 - 默认语言跟随系统，也可选择中文或英文。记住语言与上次模式，每次重新启动仍从关闭状态开始。
@@ -48,23 +102,22 @@ npm run tauri -- build --target aarch64-apple-darwin --bundles app,dmg
 
 产物在 `src-tauri/target/<目标架构>/release/bundle/`。可对可执行文件运行 `--self-test`：它会短暂申请、切换并释放真实电源请求，不启动托盘，也不修改偏好设置。
 
-Windows 界面依赖 WebView2。安装包会在缺失时下载运行时引导程序，需要网络。macOS 正式分发需要 Developer ID 签名和 Apple 公证；Windows 需要受信任签名以建立发布者信任。
+Windows 界面依赖 WebView2，安装包会在缺失时下载运行时引导程序，需要网络。建立发布者信任需要配置 Windows 受信任代码签名，以及 macOS Developer ID 签名和 Apple 公证；v2.0.0 的实际签名状态见上方安装说明。
 
-`.github/workflows/release-v2.yml` 在两个原生系统上分别测试和打包。手动运行可下载构建产物；推送 `v2.*` 标签时，两端均成功后创建含校验和的**草稿发布**。Windows 默认未签名，Mac 仅带本地 ad-hoc 签名且未公证，发布前仍需签名、公证与实机空闲休眠验证。
+`.github/workflows/release-v2.yml` 在两个原生系统上分别测试和打包，包含架构检查与原生电源接口自检。手动运行可下载构建产物；推送 `v2.*` 标签时，两端均成功后创建含校验和的**草稿发布**。已有发布及其附件会被保留，正式发布是单独的手动步骤。
 
-详细设计见 [2.0 架构](docs/architecture-v2.md)，本机工具链见 [外置盘开发环境](docs/local-development.zh-CN.md)。下方保留 1.x 的 Windows 实现与现有 MSIX 打包说明，`source/` 和 `packaging/Build-Msix.ps1` 仍属于 1.x。
+详细设计见 [2.0 架构](docs/architecture-v2.md)，本机工具链见 [外置盘开发环境](docs/local-development.zh-CN.md)。`source/` 和 `packaging/Build-Msix.ps1` 属于 Windows 1.x 实现，其使用与 MSIX 打包说明保留在下方。
 
 ---
 
-# Caffeine for Windows（1.x）
+<details>
+<summary>旧版 Windows 1.x：使用、源码构建与 MSIX 打包</summary>
 
-[English](README.md) | 简体中文
-
-一个轻量的 Windows 托盘工具，用来阻止电脑因空闲而自动休眠。
+以下说明仅适用于 Windows 专用的 1.x 程序。
 
 ## 下载
 
-从[最新版本](https://github.com/cnlutong/Caffeine-Windows/releases/latest)下载 `Caffeine.exe`。程序免安装且无需管理员权限。
+从 [v1.1.0 发布页](https://github.com/cnlutong/Caffeine-Windows/releases/tag/v1.1.0)下载 `Caffeine.exe`。程序免安装且无需管理员权限。
 
 ### Windows 智能应用控制拦截
 
@@ -137,9 +190,11 @@ if ($LASTEXITCODE -ne 0) { throw 'Signature verification failed' }
 
 签名必须在最后一次构建后、制作压缩包和计算校验和前完成。发布签名并验证过的同一份文件；每次重新构建后都需要重新签名。发布前还需在开启 Smart App Control 的 Windows 11 上验证启动和所有模式；签名验证通过不等于完成了这项兼容性测试。
 
+</details>
+
 ## 灵感来源
 
-灵感来自 [Ubuntu Caffeine](https://wiki.ubuntuusers.de/Caffeine/)：它通过托盘图标临时抑制系统节能行为。本项目是独立的 Windows 实现，与原项目没有隶属关系。
+灵感来自 [Ubuntu Caffeine](https://wiki.ubuntuusers.de/Caffeine/)：它通过托盘图标临时抑制系统节能行为。本项目为独立实现，与原项目没有隶属关系。
 
 ## 许可证
 
