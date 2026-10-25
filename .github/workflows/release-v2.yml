@@ -1,0 +1,119 @@
+name: Caffeine 2.0
+
+on:
+  push:
+    tags: ["v2.*"]
+  pull_request:
+    paths-ignore: ["source/**", "packaging/**", "**.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x86_64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bundles: nsis
+            artifact: caffeine-windows-x86_64
+          - name: macOS ARM64
+            os: macos-14
+            target: aarch64-apple-darwin
+            bundles: app,dmg
+            artifact: caffeine-macos-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - run: npm run check:release
+      - run: npm run build
+      - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
+      - run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+      - run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+      - name: Build only the requested architecture
+        run: npm run tauri -- build --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} --ci
+      - name: Windows native API self-test
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $process = Start-Process -FilePath './src-tauri/target/${{ matrix.target }}/release/caffeine.exe' -ArgumentList '--self-test' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Native power self-test failed: $($process.ExitCode)" }
+          python -c "import pathlib,struct; b=pathlib.Path('src-tauri/target/${{ matrix.target }}/release/caffeine.exe').read_bytes(); p=struct.unpack_from('<I',b,0x3c)[0]; assert b[p:p+4]==b'PE\0\0' and struct.unpack_from('<H',b,p+4)[0]==0x8664, 'Expected x86_64 PE executable'"
+      - name: macOS architecture and native API self-test
+        if: runner.os == 'macOS'
+        run: |
+          binary='src-tauri/target/${{ matrix.target }}/release/bundle/macos/Caffeine.app/Contents/MacOS/caffeine'
+          test "$(lipo -archs "$binary")" = arm64
+          "$binary" --self-test
+      - name: Stage distributable files and checksums
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          if [[ '${{ runner.os }}' == 'Windows' ]]; then
+            cp src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe artifacts/
+          else
+            cp src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg artifacts/
+          fi
+          python -c "import hashlib,pathlib; root=pathlib.Path('artifacts'); files=sorted(root.iterdir()); (root/'SHA256SUMS.txt').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\\n' for p in files))"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: artifacts/*
+          if-no-files-found: error
+
+  draft-release:
+    if: startsWith(github.ref, 'refs/tags/v2.')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Preserve an existing release and its uploaded assets
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          exists="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json tagName --jq 'any(.[]; .tagName == env.GITHUB_REF_NAME)')"
+          echo "exists=$exists" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v4
+        if: steps.existing.outputs.exists != 'true'
+        with:
+          pattern: caffeine-*
+          path: release
+      - name: Combine checksums
+        if: steps.existing.outputs.exists != 'true'
+        run: |
+          cat release/*/SHA256SUMS.txt > release/SHA256SUMS.txt
+          rm release/*/SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v2
+        if: steps.existing.outputs.exists != 'true'
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            release/**/*.exe
+            release/**/*.dmg
+            release/SHA256SUMS.txt
+          body: |
+            Caffeine 2.0 — Tauri + React + TypeScript + Rust.
+
+            Targets: Windows x86_64 and macOS ARM64 only.
+
+            Windows builds are unsigned. The macOS build is ad-hoc signed and not notarized. Complete signing, notarization, installation and real idle-sleep validation before publishing this draft to end users.

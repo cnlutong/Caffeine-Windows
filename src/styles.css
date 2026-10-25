@@ -1,0 +1,267 @@
+:root {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  color: #252a26;
+  background: #f7f6f2;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: light;
+  font-size: 14px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+button,
+select,
+input {
+  font: inherit;
+}
+button,
+select {
+  color: inherit;
+}
+button,
+select,
+.mode {
+  -webkit-tap-highlight-color: transparent;
+}
+button,
+select {
+  border: 1px solid #c8c9c3;
+  border-radius: 5px;
+  background: transparent;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+button:focus-visible,
+select:focus-visible {
+  outline: 2px solid #294b3b;
+  outline-offset: 3px;
+}
+.panel {
+  padding: 22px;
+  max-width: 460px;
+  margin: 0 auto;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand > svg {
+  color: #252a26;
+  flex-shrink: 0;
+}
+h1 {
+  font-size: 22px;
+  letter-spacing: -0.7px;
+  line-height: 1.15;
+  margin: 0;
+  font-weight: 700;
+}
+.status {
+  margin: 3px 0 0;
+  color: #7b7e77;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.status-system,
+.status-display {
+  color: #294b3b;
+}
+.header select {
+  height: 30px;
+  max-width: 112px;
+  font-size: 12px;
+  padding: 0 7px;
+  cursor: pointer;
+  background: #f7f6f2;
+}
+.modes {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.mode {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 0 17px;
+  border: 1px solid #bfc1ba;
+  border-radius: 7px;
+  cursor: pointer;
+  transition:
+    background-color 0.12s,
+    border-color 0.12s;
+}
+.mode > svg {
+  flex-shrink: 0;
+}
+.mode > span {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  flex: 1;
+  min-width: 0;
+}
+.mode input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 1.5px solid #92978e;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  cursor: inherit;
+}
+.mode input:checked {
+  border-color: #294b3b;
+}
+.mode input:checked:after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #294b3b;
+}
+.mode.selected {
+  background: #eaf1e9;
+  border-color: #416c54;
+  color: #252a26;
+}
+.mode.selected > svg {
+  color: #214c38;
+}
+.mode:has(input:focus-visible) {
+  outline: 2px solid #294b3b;
+  outline-offset: 3px;
+}
+.modes:not(:disabled) .mode:hover {
+  background: #edf0e9;
+}
+.modes:disabled .mode {
+  cursor: default;
+}
+.modes:disabled .mode input {
+  cursor: default;
+}
+footer {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #d2d3cc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.footer-note {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #777c73;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.info {
+  display: flex;
+  border: 0;
+  padding: 3px;
+  color: #777c73;
+  border-radius: 50%;
+  cursor: help;
+}
+.quit {
+  height: 28px;
+  padding: 0 17px;
+  font-size: 12px;
+}
+.quit:not(:disabled):hover {
+  background: #eaeae3;
+}
+.notice {
+  font-size: 11px;
+  color: #777c73;
+  margin: 12px 0 0;
+  line-height: 1.4;
+}
+.error {
+  font-size: 12px;
+  color: #993728;
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+.error button {
+  font-size: 11px;
+  padding: 3px 8px;
+  flex-shrink: 0;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 360px) {
+  .panel {
+    padding: 20px;
+  }
+  .brand {
+    gap: 8px;
+  }
+  .brand > svg {
+    width: 28px;
+  }
+  h1 {
+    font-size: 20px;
+  }
+  .mode {
+    padding: 0 13px;
+    gap: 10px;
+  }
+  .mode > span {
+    font-size: 14px;
+  }
+  .footer-note {
+    font-size: 10px;
+  }
+  .quit {
+    padding: 0 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
