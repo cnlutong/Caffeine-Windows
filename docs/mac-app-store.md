@@ -22,6 +22,8 @@ npm run tauri -- build --target aarch64-apple-darwin --bundles app,dmg --ci -- -
 
 ## 商店页面
 
+首个商店版本为 `2.0.1`，SKU 可用 `caffeine-macos`，主语言为 English (U.S.)，版权字段按仓库许可证填写 `2026 cnlutong`。账号持有人在 App Store Connect 确认定价、发行地区、年龄分级和审核联系人。 [Apple 元数据字段](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/)
+
 | 字段 | English (U.S.) | 简体中文 |
 | --- | --- | --- |
 | 建议显示名 | Caffeine: Menu Bar Awake | Caffeine：菜单栏防休眠 |
