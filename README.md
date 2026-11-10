@@ -1,19 +1,21 @@
-# Caffeine 2.0
+# Caffeine 2.0.1
 
 English | [简体中文](README.zh-CN.md)
 
 A quiet keep-awake utility for **Windows and macOS**, built with **Tauri 2 + React + TypeScript + Rust**.
 
-## Download 2.0
+## Download 2.0.1
 
-| Platform       | Requirements                         | Download v2.0.0                                                                                                                           |
+| Platform       | Requirements                         | Download v2.0.1                                                                                                                           |
 | -------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Windows x86_64 | 64-bit Windows 10 / 11, Intel or AMD | [Windows installer (.exe)](https://github.com/cnlutong/Caffeine-Windows/releases/download/v2.0.0/Caffeine_2.0.0_windows_x86_64_setup.exe) |
-| macOS ARM64    | macOS 11 or later, Apple Silicon     | [Mac disk image (.dmg)](https://github.com/cnlutong/Caffeine-Windows/releases/download/v2.0.0/Caffeine_2.0.0_macos_arm64.dmg)             |
+| Windows x86_64 | 64-bit Windows 10 / 11, Intel or AMD | [Windows installer (.exe)](https://github.com/cnlutong/Caffeine-Windows/releases/download/v2.0.1/Caffeine_2.0.1_windows_x86_64_setup.exe) |
+| macOS ARM64    | macOS 11 or later, Apple Silicon     | [Mac disk image (.dmg)](https://github.com/cnlutong/Caffeine-Windows/releases/download/v2.0.1/Caffeine_2.0.1_macos_arm64.dmg)             |
 
-[Release notes](https://github.com/cnlutong/Caffeine-Windows/releases/tag/v2.0.0) · [SHA-256 checksums](https://github.com/cnlutong/Caffeine-Windows/releases/download/v2.0.0/SHA256SUMS.txt) · [All releases](https://github.com/cnlutong/Caffeine-Windows/releases)
+[Release notes](https://github.com/cnlutong/Caffeine-Windows/releases/tag/v2.0.1) · [SHA-256 checksums](https://github.com/cnlutong/Caffeine-Windows/releases/download/v2.0.1/SHA256SUMS.txt) · [All releases](https://github.com/cnlutong/Caffeine-Windows/releases)
 
 Only these two architectures are distributed in 2.0. There are no Windows ARM64, Windows 32-bit or Intel Mac packages.
+
+On macOS, reopening Caffeine now shows Settings in the existing instance. The settings panel includes a Privacy Policy link in both languages.
 
 ## What's new in 2.0
 
@@ -26,21 +28,21 @@ Only these two architectures are distributed in 2.0. There are no Windows ARM64,
 
 ### Windows x86_64
 
-1. Download `Caffeine_2.0.0_windows_x86_64_setup.exe` from the table above and run it.
+1. Download `Caffeine_2.0.1_windows_x86_64_setup.exe` from the table above and run it.
 2. Follow the installer to install for the current user. The interface requires **Microsoft Edge WebView2**; if it is missing, the installer downloads its bootstrapper, so an internet connection is needed for that step.
 3. Launch **Caffeine** from the Start menu. Look for the coffee cup in the notification area, including the hidden-icons menu. Right-click it and choose **Settings…** to open the panel.
 
 When upgrading from 1.x, exit the old tray app before starting 2.0.
 
-The v2.0.0 Windows installer is **unsigned**. Windows may display a publisher or reputation warning. [Smart App Control](https://support.microsoft.com/en-us/windows/security/threat-malware-protection/smart-app-control-frequently-asked-questions) may block it and does not support exceptions for individual apps.
+The v2.0.1 Windows installer is **unsigned**. Windows may display a publisher or reputation warning. [Smart App Control](https://support.microsoft.com/en-us/windows/security/threat-malware-protection/smart-app-control-frequently-asked-questions) may block it and does not support exceptions for individual apps.
 
 ### macOS ARM64 / Apple Silicon
 
-1. Download and open `Caffeine_2.0.0_macos_arm64.dmg`.
+1. Download and open `Caffeine_2.0.1_macos_arm64.dmg`.
 2. Drag **Caffeine.app** into **Applications**, then eject the disk image.
 3. Open **Caffeine** from Applications. The coffee cup appears in the menu bar; no Dock icon or settings window opens at startup. Right-click the cup and choose **Settings…** to open the panel.
 
-The v2.0.0 Mac app is **ad-hoc signed and not notarized**. If macOS blocks it because the developer cannot be verified, first confirm the download source and checksum. If you choose to open it, try launching it once, then use **System Settings → Privacy & Security → Open Anyway** and confirm. On macOS 11 / 12, this is under **System Preferences → Security & Privacy → General**. See [Apple's opening instructions](https://support.apple.com/en-us/102445).
+The v2.0.1 Mac app is **ad-hoc signed and not notarized**. If macOS blocks it because the developer cannot be verified, first confirm the download source and checksum. If you choose to open it, try launching it once, then use **System Settings → Privacy & Security → Open Anyway** and confirm. On macOS 11 / 12, this is under **System Preferences → Security & Privacy → General**. See [Apple's opening instructions](https://support.apple.com/en-us/102445).
 
 ### Verify a download
 
@@ -49,13 +51,13 @@ Download `SHA256SUMS.txt` alongside the installer and compare the matching filen
 Windows PowerShell:
 
 ```powershell
-Get-FileHash .\Caffeine_2.0.0_windows_x86_64_setup.exe -Algorithm SHA256
+Get-FileHash .\Caffeine_2.0.1_windows_x86_64_setup.exe -Algorithm SHA256
 ```
 
 macOS Terminal:
 
 ```sh
-shasum -a 256 Caffeine_2.0.0_macos_arm64.dmg
+shasum -a 256 Caffeine_2.0.1_macos_arm64.dmg
 ```
 
 ## Usage
@@ -102,7 +104,7 @@ npm run tauri -- build --target aarch64-apple-darwin --bundles app,dmg
 
 Outputs live in `src-tauri/target/<target>/release/bundle/`. Run the executable with `--self-test` to briefly create, switch and release real power requests without starting the tray or changing preferences.
 
-The Windows UI needs WebView2. The installer downloads its bootstrapper if absent, requiring network connectivity. For publisher trust, configure trusted code signing on Windows and Developer ID signing with Apple notarization on macOS. The v2.0.0 signing status is documented in the installation instructions above.
+The Windows UI needs WebView2. The installer downloads its bootstrapper if absent, requiring network connectivity. For publisher trust, configure trusted code signing on Windows and Developer ID signing with Apple notarization on macOS. The v2.0.1 signing status is documented in the installation instructions above.
 
 `.github/workflows/release-v2.yml` tests and builds on both native operating systems, including architecture checks and native power API self-tests. Manual runs produce downloadable artifacts; a `v2.*` tag creates a **draft release** with checksums only after both targets succeed. Existing releases and their uploaded assets are preserved; publication is a separate manual step.
 
