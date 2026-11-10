@@ -194,6 +194,15 @@ footer {
   border-radius: 50%;
   cursor: help;
 }
+.privacy {
+  border: 0;
+  background: transparent;
+  padding: 5px;
+  margin-left: auto;
+  color: #4f5b50;
+  font-size: 11px;
+  text-decoration: underline;
+}
 .quit {
   height: 28px;
   padding: 0 17px;

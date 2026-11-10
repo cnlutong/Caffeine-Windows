@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { version } from "../package.json";
 import * as bridge from "./bridge";
 import { Icon } from "./components/Icon";
 import { messages, systemLocale } from "./i18n";
@@ -11,6 +12,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(!bridge.desktop);
   const [error, setError] = useState("");
+  const [privacyError, setPrivacyError] = useState(false);
   const [previewLanguage, setPreviewLanguage] = useState<Language>("auto");
   const revision = useRef(-1);
   const locale =
@@ -93,7 +95,7 @@ export default function App() {
         <div className="brand">
           <Icon name="coffee" size={34} />
           <div>
-            <h1 title={`Caffeine ${snapshot?.version ?? "2.0.0"}`}>Caffeine</h1>
+            <h1 title={`Caffeine ${snapshot?.version ?? version}`}>Caffeine</h1>
             <p
               className={`status status-${snapshot?.mode ?? "off"}`}
               role="status"
@@ -153,6 +155,11 @@ export default function App() {
           {text.saveWarning}
         </p>
       ) : null}
+      {privacyError && (
+        <p className="notice" role="alert">
+          {text.privacyError}
+        </p>
+      )}
       {error || snapshot?.error ? (
         <div className="error" role="alert">
           <span title={snapshot?.error ?? undefined}>
@@ -175,6 +182,17 @@ export default function App() {
             <Icon name="info" size={14} />
           </button>
         </div>
+        {bridge.desktop && (
+          <button
+            className="privacy"
+            onClick={() => {
+              setPrivacyError(false);
+              void bridge.openPrivacyPolicy().catch(() => setPrivacyError(true));
+            }}
+          >
+            {text.privacy}
+          </button>
+        )}
         <button
           className="quit"
           disabled={!bridge.desktop || busy}

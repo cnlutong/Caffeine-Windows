@@ -106,7 +106,7 @@ The Windows UI needs WebView2. The installer downloads its bootstrapper if absen
 
 `.github/workflows/release-v2.yml` tests and builds on both native operating systems, including architecture checks and native power API self-tests. Manual runs produce downloadable artifacts; a `v2.*` tag creates a **draft release** with checksums only after both targets succeed. Existing releases and their uploaded assets are preserved; publication is a separate manual step.
 
-See the [2.0 architecture](docs/architecture-v2.md). `source/` and `packaging/Build-Msix.ps1` belong to the legacy Windows 1.x implementation; their usage and MSIX instructions are preserved below.
+See the [2.0 architecture](docs/architecture-v2.md), [Mac App Store submission guide](docs/mac-app-store.md), and [privacy policy](docs/privacy.md). The Windows 1.x source and MSIX instructions are below.
 
 ---
 

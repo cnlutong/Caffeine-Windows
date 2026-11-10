@@ -1,3 +1,5 @@
+#[cfg(target_os = "macos")]
+mod macos_instance;
 mod model;
 mod power;
 mod settings;
@@ -19,6 +21,8 @@ struct Runtime {
     system_locale: String,
     warning: Option<String>,
     error: Option<String>,
+    #[cfg(target_os = "macos")]
+    instance: Option<macos_instance::Instance>,
 }
 
 impl Runtime {
@@ -89,6 +93,42 @@ fn quit_app(app: AppHandle) -> Result<(), String> {
     change(&app, |controller| controller.set_mode(Mode::Off))?;
     app.exit(0);
     Ok(())
+}
+
+#[tauri::command]
+fn open_privacy_policy() -> Result<(), String> {
+    const URL: &str = "https://github.com/cnlutong/Caffeine-Windows/blob/main/docs/privacy.md";
+
+    #[cfg(target_os = "macos")]
+    let opened = {
+        use objc2_app_kit::NSWorkspace;
+        use objc2_foundation::{NSString, NSURL};
+
+        NSURL::URLWithString(&NSString::from_str(URL))
+            .is_some_and(|url| NSWorkspace::sharedWorkspace().openURL(&url))
+    };
+    #[cfg(target_os = "windows")]
+    let opened = {
+        use windows_sys::Win32::UI::{Shell::ShellExecuteW, WindowsAndMessaging::SW_SHOWNORMAL};
+
+        let url: Vec<u16> = URL.encode_utf16().chain([0]).collect();
+        let result = unsafe {
+            ShellExecuteW(
+                std::ptr::null_mut(),
+                std::ptr::null(),
+                url.as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                SW_SHOWNORMAL,
+            )
+        };
+        result as isize > 32
+    };
+    if opened {
+        Ok(())
+    } else {
+        Err("Could not open the privacy policy".into())
+    }
 }
 
 fn labels(locale: &str) -> [&'static str; 6] {
@@ -269,22 +309,26 @@ pub fn self_test() -> Result<(), String> {
 }
 
 pub fn run() {
-    let builder = tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _, _| {
-            show_settings(app)
-        }))
-        .invoke_handler(tauri::generate_handler![
-            get_state,
-            set_mode,
-            set_language,
-            quit_app
-        ]);
+    let builder = tauri::Builder::default();
+    #[cfg(target_os = "windows")]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _, _| {
+        show_settings(app)
+    }));
+    #[cfg(not(feature = "desktop-smoke"))]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        get_state,
+        set_mode,
+        set_language,
+        quit_app,
+        open_privacy_policy
+    ]);
     #[cfg(feature = "desktop-smoke")]
     let builder = builder.invoke_handler(tauri::generate_handler![
         get_state,
         set_mode,
         set_language,
         quit_app,
+        open_privacy_policy,
         smoke::smoke_complete,
         smoke::smoke_reopening,
         smoke::smoke_reopen,
@@ -294,8 +338,16 @@ pub fn run() {
     let app = builder
         .setup(|app| {
             #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-
+            let (path, instance) = {
+                let directory = macos_instance::config_dir(&app.config().identifier);
+                let Some(instance) = macos_instance::Instance::acquire(app.handle(), &directory)?
+                else {
+                    std::process::exit(0);
+                };
+                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+                (directory.join("settings.json"), Some(instance))
+            };
+            #[cfg(target_os = "windows")]
             let path = app.path().app_config_dir()?.join("settings.json");
             #[cfg(feature = "desktop-smoke")]
             let path = if smoke::enabled() {
@@ -313,6 +365,8 @@ pub fn run() {
                 system_locale: sys_locale::get_locale().unwrap_or_else(|| "en".into()),
                 warning,
                 error: None,
+                #[cfg(target_os = "macos")]
+                instance,
             };
             let snapshot = runtime.snapshot();
             app.manage(Mutex::new(runtime));
@@ -361,6 +415,8 @@ pub fn run() {
         .expect("Could not start Caffeine");
 
     app.run(|app, event| match event {
+        #[cfg(target_os = "macos")]
+        RunEvent::Reopen { .. } => show_settings(app),
         // Closing the last WebView destroys it, but the native tray and power requests stay alive.
         RunEvent::ExitRequested {
             code: None, api, ..
@@ -374,6 +430,8 @@ pub fn run() {
                 if let Err(error) = runtime.controller.power.apply(Mode::Off) {
                     eprintln!("Exit cleanup: {error}");
                 }
+                #[cfg(target_os = "macos")]
+                drop(runtime.instance.take());
             }
         }
         _ => {}

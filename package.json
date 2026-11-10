@@ -1,11 +1,12 @@
 {
   "name": "caffeine",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 1420 --strictPort",
     "build": "tsc -b && vite build",
+    "build:macos-store": "bash scripts/build-macos-store.sh",
     "preview": "vite preview --host 127.0.0.1",
     "tauri": "tauri",
     "check": "tsc -b",

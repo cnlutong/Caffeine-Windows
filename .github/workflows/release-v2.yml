@@ -23,7 +23,7 @@ jobs:
             bundles: nsis
             artifact: caffeine-windows-x86_64
           - name: macOS ARM64
-            os: macos-14
+            os: macos-15
             target: aarch64-apple-darwin
             bundles: app,dmg
             artifact: caffeine-macos-arm64
@@ -56,12 +56,15 @@ jobs:
           $process = Start-Process -FilePath './src-tauri/target/${{ matrix.target }}/release/caffeine.exe' -ArgumentList '--self-test' -Wait -PassThru
           if ($process.ExitCode -ne 0) { throw "Native power self-test failed: $($process.ExitCode)" }
           python -c "import pathlib,struct; b=pathlib.Path('src-tauri/target/${{ matrix.target }}/release/caffeine.exe').read_bytes(); p=struct.unpack_from('<I',b,0x3c)[0]; assert b[p:p+4]==b'PE\0\0' and struct.unpack_from('<H',b,p+4)[0]==0x8664, 'Expected x86_64 PE executable'"
-      - name: macOS architecture and native API self-test
+      - name: Check the GitHub Mac bundle and native power API
         if: runner.os == 'macOS'
         run: |
-          binary='src-tauri/target/${{ matrix.target }}/release/bundle/macos/Caffeine.app/Contents/MacOS/caffeine'
-          test "$(lipo -archs "$binary")" = arm64
-          "$binary" --self-test
+          app='src-tauri/target/${{ matrix.target }}/release/bundle/macos/Caffeine.app'
+          bash scripts/check-macos-bundle.sh "$app"
+          "$app/Contents/MacOS/caffeine" --self-test
+      - name: Build and check the matching Mac App Store sandbox variant
+        if: runner.os == 'macOS'
+        run: npm run build:macos-store -- --local
       - name: Stage distributable files and checksums
         shell: bash
         run: |

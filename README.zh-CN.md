@@ -106,7 +106,7 @@ Windows 界面依赖 WebView2，安装包会在缺失时下载运行时引导程
 
 `.github/workflows/release-v2.yml` 在两个原生系统上分别测试和打包，包含架构检查与原生电源接口自检。手动运行可下载构建产物；推送 `v2.*` 标签时，两端均成功后创建含校验和的**草稿发布**。已有发布及其附件会被保留，正式发布是单独的手动步骤。
 
-详细设计见 [2.0 架构](docs/architecture-v2.md)，本机工具链见 [外置盘开发环境](docs/local-development.zh-CN.md)。`source/` 和 `packaging/Build-Msix.ps1` 属于 Windows 1.x 实现，其使用与 MSIX 打包说明保留在下方。
+相关文档包括 [2.0 架构](docs/architecture-v2.md)、[外置盘开发环境](docs/local-development.zh-CN.md)、[Mac App Store 提交手册](docs/mac-app-store.md)和[隐私政策](docs/privacy.md)。Windows 1.x 源码和 MSIX 打包说明见下方。
 
 ---
 

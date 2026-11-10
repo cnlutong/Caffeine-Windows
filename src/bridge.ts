@@ -10,5 +10,6 @@ export const setMode = (mode: AwakeMode) =>
 export const setLanguage = (language: Language) =>
   invoke<AppSnapshot>("set_language", { language });
 export const quit = () => invoke<void>("quit_app");
+export const openPrivacyPolicy = () => invoke<void>("open_privacy_policy");
 export const onStateChanged = (callback: (state: AppSnapshot) => void) =>
   listen<AppSnapshot>("state-changed", (event) => callback(event.payload));

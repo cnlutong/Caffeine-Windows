@@ -20,6 +20,8 @@ export const messages = {
     details:
       "Only prevents idle sleep. Manual sleep, closing the lid and security locking remain under system control.",
     quit: "Quit",
+    privacy: "Privacy Policy",
+    privacyError: "Could not open the privacy policy.",
     retry: "Retry",
     failed: "Could not apply the change.",
     unavailable: "Open the desktop app to control power.",
@@ -42,6 +44,8 @@ export const messages = {
     running: "关闭窗口后继续运行",
     details: "仅阻止空闲休眠。手动休眠、合盖和安全锁屏仍由系统控制。",
     quit: "退出",
+    privacy: "隐私政策",
+    privacyError: "无法打开隐私政策。",
     retry: "重试",
     failed: "无法应用更改。",
     unavailable: "请在桌面应用中控制电源。",
