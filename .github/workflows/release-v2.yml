@@ -68,17 +68,34 @@ jobs:
       - name: Stage distributable files and checksums
         shell: bash
         run: |
-          mkdir -p artifacts
+          destination='artifacts/github-release'
+          version=$(node -p 'require("./package.json").version')
+          mkdir -p "$destination"
           if [[ '${{ runner.os }}' == 'Windows' ]]; then
-            cp src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe artifacts/
+            cp src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe "$destination/Caffeine_${version}_windows_x86_64_setup.exe"
           else
-            cp src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg artifacts/
+            cp src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg "$destination/Caffeine_${version}_macos_arm64.dmg"
           fi
-          python -c "import hashlib,pathlib; root=pathlib.Path('artifacts'); files=sorted(root.iterdir()); (root/'SHA256SUMS.txt').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\\n' for p in files))"
+          node --input-type=module - "$destination" <<'JS'
+          import { createHash } from 'node:crypto';
+          import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+          import { join } from 'node:path';
+
+          const directory = process.argv[2];
+          const installers = readdirSync(directory, { withFileTypes: true })
+            .filter((entry) => entry.isFile() && /\.(dmg|exe)$/.test(entry.name))
+            .map((entry) => entry.name)
+            .sort();
+          const checksums = installers.map((name) => {
+            const hash = createHash('sha256').update(readFileSync(join(directory, name))).digest('hex');
+            return `${hash}  ${name}\n`;
+          });
+          writeFileSync(join(directory, 'SHA256SUMS.txt'), checksums.join(''));
+          JS
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: artifacts/*
+          path: artifacts/github-release/*
           if-no-files-found: error
 
   draft-release:
